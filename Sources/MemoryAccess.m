@@ -27,4 +27,3 @@ BOOL MTWriteByte(void *object, size_t offset, uint8_t value) { return writeData(
 BOOL MTWriteFloat(void *object, size_t offset, float value) { return isfinite(value) && writeData(object, offset, &value, sizeof(value)); }
 BOOL MTWriteInt(void *object, size_t offset, int32_t value) { return writeData(object, offset, &value, sizeof(value)); }
 BOOL MTWritePointer(void *object, size_t offset, void *value) { return writeData(object, offset, &value, sizeof(value)); }
-
