@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "app": {
+    "name": "Crimson Desert Trainer",
+    "bundleIdentifier": "local.mactrainer.crimsondesert",
+    "version": "0.2.0",
+    "build": "2"
+  },
+  "profiles": [
+    {
+      "id": "crimson-steam-arm64-1.0.35-plus12",
+      "name": "Crimson Desert · Steam · 2.04.03",
+      "enabled": true,
+      "bundleIdentifier": "com.pearlabyss.CrimsonDesert.steam",
+      "executable": "CrimsonDesert_Steam",
+      "uuids": [
+        "0D6EC6AE-D229-3D5B-BEB9-9DD74EF820DA"
+      ],
+      "teamIdentifier": "57S64SYSTT",
+      "version": "1.0.35",
+      "steamAppId": "3321460"
+    }
+  ]
+}

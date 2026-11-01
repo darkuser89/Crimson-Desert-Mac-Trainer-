@@ -1,0 +1,22 @@
+Voraussetzungen
+Apple Silicon, macOS 14 oder neuer und Crimson Desert aus Steam.
+Geprüfter Spiel-Build: 2.04.03, Bundle 1.0.35 (433), arm64.
+Andere Spiel-Builds bleiben gesperrt, bis ihre Anbindung geprüft wurde.
+macOS 14/15 wurden nicht auf einem echten Gerät getestet.
+
+Installation
+1. ZIP entpacken und Crimson Desert Trainer.app in den gewünschten App-Ordner ziehen.
+2. Steam öffnen. Eine bereits laufende Spielinstanz regulär beenden.
+3. Den Trainer öffnen und bei Bedarf die installierte Spiele-App auswählen.
+4. Spiel mit Trainer starten wählen und einen vorhandenen Spielstand laden.
+5. Befehl + ^ öffnet das Overlay mit Maus. Umschalt + F9 schaltet alle Effekte aus.
+
+Die App ist ad hoc signiert und nicht Apple-notarisiert.
+Geld und Gegenstände werden in kleinsten Einheiten bzw. Stückzahlen gesetzt.
+100 Geldeinheiten entsprechen 1,00 in der Spielanzeige. Bereits ausgeführte
+Einmalaktionen werden durch Umschalt + F9 nicht rückgängig gemacht.
+Das Spiel kann geänderte Mengen und Tageszeit speichern.
+
+Quellcode, Bedienung und GPL-3.0-only-Lizenz:
+https://github.com/darkuser89/Crimson-Desert-Mac-Trainer-
+Der Download enthält keine Spieldateien oder Spielstände.
