@@ -1,3 +1,6 @@
+Trainer 0.3.0 aktualisiert die nativen Bindings für Spielversion 2.04.05 / Build 437.
+UUID und 76 Prüfstellen mit je 32 Bytes werden exakt geprüft; andere Builds bleiben gesperrt.
+
 Nativer Crimson Desert Trainer für die macOS-Steam-Ausgabe auf Apple Silicon.
 
 - Zwölf Funktionen der Referenzvorlage; Gegenstände und Geld separat bedienbar.
@@ -6,9 +9,12 @@ Nativer Crimson Desert Trainer für die macOS-Steam-Ausgabe auf Apple Silicon.
 - Eigenes App-Icon und Launcher mit „Spiel mit Trainer starten“.
 - ⌘ + ^ öffnet das Overlay mit Maus; ⇧F9 nimmt Schaltereffekte zurück.
 
-**Spiel-Build:** 2.04.03 / Bundle 1.0.35 (433), Steam arm64.
-Andere Builds bleiben gesperrt. Ingame am vorhandenen Kliff-Spielstand geprüft;
-keine Zusage für jeden Boss oder geskriptete Todesereignisse. macOS14/15,
+**Spiel-Build:** 2.04.05 / Bundle 1.0.35 (437), Steam arm64.
+Andere Builds bleiben gesperrt. Ingame auf Build 437 geprüft: zehn Schalter mit Rückleseprüfung und Rücknahme,
+Verbrauchsblockade für Leben/Ausdauer/Geist, exakt +3.600 Sekunden sowie
+Fleisch 14 → 15 → 14 und Geld 797.521 → 797.522 → 797.521.
+Der frühere Kampfnachweis stammt aus Build 433; kein neuer Kampfversuch auf Build 437.
+Keine Zusage für jeden Boss oder geskriptete Todesereignisse. macOS14/15,
 Multiplayer und vollständige Gebietsreisen wurden nicht real getestet.
 
 Der GitHub-Build führt die synthetischen Tests und eine ZIP-Entpack-/Signaturprüfung

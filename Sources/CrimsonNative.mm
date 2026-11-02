@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Bindings for the inspected macOS arm64 Steam build 1.0.35 only.
+// Bindings for the inspected macOS arm64 Steam build 1.0.35 (437) only.
 #import "CrimsonNative.h"
 extern "C" {
 #import "MemoryAccess.h"
@@ -27,7 +27,7 @@ void *context(uintptr_t slot) { return read<void *>(reinterpret_cast<void *>(ima
 bool loading(void *ctx) {
     void *gameplay=ctx ? read<void *>(ctx,0x20) : nullptr;
     void *processor=gameplay ? read<void *>(gameplay,0x1f70) : nullptr;
-    return !processor || native<bool(*)(void *)>(0x3fba440)(processor);
+    return !processor || native<bool(*)(void *)>(0x3fba730)(processor);
 }
 // Non-trivial return type deliberately uses arm64's x8 indirect-result ABI.
 // Native getFocusActor returns an engine scope attacher, not a raw actor pointer.
@@ -35,7 +35,7 @@ struct ActorScope {
     void *vtable=nullptr, *actor=nullptr;
     uint8_t valid=0, mode=0, padding[6]{};
     const char *tag=nullptr;
-    ~ActorScope() { if(vtable) native<void(*)(void *)>(0x10ff3d4)(this); }
+    ~ActorScope() { if(vtable) native<void(*)(void *)>(0x10ff3dc)(this); }
     ActorScope() = default;
     ActorScope(const ActorScope&)=delete;
 };
@@ -74,7 +74,7 @@ uint32_t invokeServerTask(void *,void *parameter) {
         if(!block)return 0;
         BOOL owned;
         {std::lock_guard<std::mutex> guard(serverPendingLock);owned=[serverPending containsObject:block];}
-        if(owned && native<bool(*)()>(0xea39c0)())block();
+        if(owned && native<bool(*)()>(0xea39c8)())block();
         {std::lock_guard<std::mutex> guard(serverPendingLock);[serverPending removeObjectIdenticalTo:block];}
         return 0;
     }
@@ -102,9 +102,9 @@ BOOL onServerThread(dispatch_block_t work) {
 }
 NSDictionary *serverSnapshot(uint32_t key) {
     char name[128]{};pthread_getname_np(pthread_self(),name,sizeof(name));
-    NSMutableDictionary *out=[@{@"thread":@(name),@"serverThread":@(native<bool(*)()>(0xea39c0)())} mutableCopy];
-    if(!native<bool(*)()>(0xea39c0)())return out;
-    void *troc=native<void *(*)()>(0xc91868)();
+    NSMutableDictionary *out=[@{@"thread":@(name),@"serverThread":@(native<bool(*)()>(0xea39c8)())} mutableCopy];
+    if(!native<bool(*)()>(0xea39c8)())return out;
+    void *troc=native<void *(*)()>(0xc91870)();
     void *manager=troc ? read<void *>(troc) : nullptr;
     if(!manager)return out;
     ActorScope scope=native<ActorScope(*)(void *,uint32_t)>(0x824fac)(manager,key);
@@ -113,16 +113,16 @@ NSDictionary *serverSnapshot(uint32_t key) {
     void *component=read<void *>(read<void *>(scope.actor,0x108),0x20);
     void *flags=component ? read<void *>(component,0x428) : nullptr;
     out[@"invincible"]=@(flags && read<uint8_t>(flags,0x18));
-    void *status=native<void *(*)(void *)>(0xf48024)(scope.actor);
-    void *infos=native<void *(*)(uint16_t)>(0x1b34090)(2);
-    const uintptr_t getters[]={0x1ac3480,0x1ac3458,0x1ac3488,0x1ac3468,0x1ac3460};
+    void *status=native<void *(*)(void *)>(0xf4802c)(scope.actor);
+    void *infos=native<void *(*)(uint16_t)>(0x1b34098)(2);
+    const uintptr_t getters[]={0x1ac3488,0x1ac3460,0x1ac3490,0x1ac3470,0x1ac3468};
     NSArray *names=@[@"health",@"stamina",@"spirit",@"defense",@"attack"];
-    uint64_t tick=native<uint64_t(*)()>(0xea69e0)();
+    uint64_t tick=native<uint64_t(*)()>(0xea69e8)();
     for(unsigned i=0;i<5;i++) {
         uint16_t index=native<uint16_t(*)(void *)>(getters[i])(infos);
-        int64_t current=native<int64_t(*)(void *,uint16_t,uint64_t)>(0x1f7fd50)(status,index,tick);
-        int64_t maximum=native<int64_t(*)(void *,uint16_t)>(0x1f827a4)(status,index);
-        int64_t minimum=native<int64_t(*)(void *,uint16_t)>(0x1f82a10)(status,index);
+        int64_t current=native<int64_t(*)(void *,uint16_t,uint64_t)>(0x1f80040)(status,index,tick);
+        int64_t maximum=native<int64_t(*)(void *,uint16_t)>(0x1f82a94)(status,index);
+        int64_t minimum=native<int64_t(*)(void *,uint16_t)>(0x1f82d00)(status,index);
         out[names[i]]=@{@"index":@(index),@"raw":@(current),@"rawMaximum":@(maximum),@"rawMinimum":@(minimum)};
     }
     return out;
@@ -146,7 +146,7 @@ void drainPending() {
         if(!scheduled) scheduled=[NSHashTable hashTableWithOptions:NSPointerFunctionsWeakMemory|NSPointerFunctionsObjectPointerPersonality];
         if([scheduled containsObject:block]) continue;
         NativeDelegate delegate{(__bridge void *)block,invokeBlock,nullptr,0,0,{}};
-        native<uint64_t(*)(void *,float,const NativeDelegate *,bool)>(0x4087120)(timer,0.f,&delegate,true);
+        native<uint64_t(*)(void *,float,const NativeDelegate *,bool)>(0x4087410)(timer,0.f,&delegate,true);
         [scheduled addObject:block];
     }
 }
@@ -181,8 +181,8 @@ BOOL CDCorrectBuild(void) {
     if(!uuid) {buildFailure=@"Unexpected executable UUID";return NO;}
     imageBase=reinterpret_cast<uintptr_t>(h);
     for(const auto &entry:CDEntryChecks) {
-        uint8_t bytes[16];
-        if(!MTReadMemory(reinterpret_cast<void *>(imageBase+entry.offset),bytes,sizeof(bytes)) || memcmp(bytes,entry.bytes,16)) {buildFailure=[NSString stringWithFormat:@"Instruction prefix mismatch at 0x%lx",entry.offset];return NO;}
+        uint8_t bytes[sizeof(entry.bytes)];
+        if(!MTReadMemory(reinterpret_cast<void *>(imageBase+entry.offset),bytes,sizeof(bytes)) || memcmp(bytes,entry.bytes,sizeof(bytes))) {buildFailure=[NSString stringWithFormat:@"Instruction prefix mismatch at 0x%lx",entry.offset];return NO;}
     }
     supported=true; return YES;
 }
@@ -204,26 +204,26 @@ NSDictionary *CDReadPlayer(void) {
     if(loading(ctx)) {result[@"loading"]=@YES;return result;}
     void *manager=ctx ? read<void *>(ctx,0x30) : nullptr;
     if(!manager) {result[@"loading"]=@YES;return result;}
-    ActorScope scope=native<ActorScope(*)(void *)>(0x3fc9d48)(manager);
+    ActorScope scope=native<ActorScope(*)(void *)>(0x3fca038)(manager);
     if(!scope.valid || !scope.actor) {result[@"loading"]=@YES;return result;}
-    if(!native<bool(*)(void *,void *)>(0x3fcc5f0)(manager,scope.actor)) {result[@"error"]=@"Focus actor is not locally owned";return result;}
+    if(!native<bool(*)(void *,void *)>(0x3fcc8e0)(manager,scope.actor)) {result[@"error"]=@"Focus actor is not locally owned";return result;}
     result[@"actorKey"]=@(read<uint32_t>(scope.actor,0x100));
-    result[@"fieldIndex"]=@(native<uint16_t(*)(void *)>(0xf3d6b0)(scope.actor));
+    result[@"fieldIndex"]=@(native<uint16_t(*)(void *)>(0xf3d6b8)(scope.actor));
     void *moduleInfo=read<void *>(ctx,8);
     void *input=moduleInfo ? read<void *>(moduleInfo,0x10) : nullptr;
     result[@"cursorVisible"]=@(input && read<uint8_t>(input,0x50));
-    void *status=native<void *(*)(void *)>(0xf48024)(scope.actor);
+    void *status=native<void *(*)(void *)>(0xf4802c)(scope.actor);
     if(!status) {result[@"loading"]=@YES;return result;}
-    void *infos=native<void *(*)(uint16_t)>(0x1b34090)(2);
+    void *infos=native<void *(*)(uint16_t)>(0x1b34098)(2);
     if(!infos) {result[@"loading"]=@YES;return result;}
-    const uintptr_t keys[]={0x1ac3480,0x1ac3458,0x1ac3488,0x1ac3468,0x1ac3460};
+    const uintptr_t keys[]={0x1ac3488,0x1ac3460,0x1ac3490,0x1ac3470,0x1ac3468};
     NSArray *names=@[@"health",@"stamina",@"spirit",@"defense",@"attack"];
-    uint64_t tick=native<uint64_t(*)()>(0xea69e0)();
+    uint64_t tick=native<uint64_t(*)()>(0xea69e8)();
     for(size_t i=0;i<5;i++) {
         uint16_t key=native<uint16_t(*)(void *)>(keys[i])(infos);
-        int64_t value=native<int64_t(*)(void *,uint16_t,uint64_t)>(0x1f7fd50)(status,key,tick);
-        int64_t maximum=native<int64_t(*)(void *,uint16_t)>(0x1f827a4)(status,key);
-        int64_t minimum=native<int64_t(*)(void *,uint16_t)>(0x1f82a10)(status,key);
+        int64_t value=native<int64_t(*)(void *,uint16_t,uint64_t)>(0x1f80040)(status,key,tick);
+        int64_t maximum=native<int64_t(*)(void *,uint16_t)>(0x1f82a94)(status,key);
+        int64_t minimum=native<int64_t(*)(void *,uint16_t)>(0x1f82d00)(status,key);
         result[names[i]]=@{@"index":@(key),@"rawMinimum":@(minimum),@"raw":@(value),@"rawMaximum":@(maximum),@"value":@(value/1000.),@"maximum":@(maximum/1000.)};
     }
     uint32_t observedKey=read<uint32_t>(scope.actor,0x100);
@@ -232,11 +232,11 @@ NSDictionary *CDReadPlayer(void) {
     ItemBinding selected,wallet;
     if(selectedItem(scope.actor,selected))result[@"selectedItem"]=bindingJSON(selected);
     if(getenv("MT_CRIMSON_PROBE_OUTPUT") && selectionDiagnostic)result[@"selectionDiagnostic"]=selectionDiagnostic;
-    if(void *walletObject=walletItem(scope.actor,wallet)){NSMutableDictionary *data=[bindingJSON(wallet) mutableCopy];data[@"stackLimit"]=@(native<int64_t(*)(const void *,bool)>(0x1a6e1a4)(walletObject,false));result[@"wallet"]=data;}
-    result[@"invincible"]=@(native<bool(*)(void *)>(0xf4fc2c)(scope.actor));
-    FieldTime time;if(actorTime(scope.actor,time)){result[@"seconds"]=@(native<uint64_t(*)(const FieldTime *)>(0xeecf84)(&time));result[@"daySpeed"]=@(read<uint16_t>(&time,0x16));}
+    if(void *walletObject=walletItem(scope.actor,wallet)){NSMutableDictionary *data=[bindingJSON(wallet) mutableCopy];data[@"stackLimit"]=@(native<int64_t(*)(const void *,bool)>(0x1a6e1ac)(walletObject,false));result[@"wallet"]=data;}
+    result[@"invincible"]=@(native<bool(*)(void *)>(0xf4fc34)(scope.actor));
+    FieldTime time;if(actorTime(scope.actor,time)){result[@"seconds"]=@(native<uint64_t(*)(const FieldTime *)>(0xeecf8c)(&time));result[@"daySpeed"]=@(read<uint16_t>(&time,0x16));}
     uint8_t speedType=5;void *gameplay=read<void *>(ctx,0x20);
-    result[@"speed"]=@(native<float(*)(void *,bool,const uint8_t *)>(0x3ffda24)(gameplay,false,&speedType));
+    result[@"speed"]=@(native<float(*)(void *,bool,const uint8_t *)>(0x3ffdd14)(gameplay,false,&speedType));
     result[@"effectiveSpeed"]=@(read<float>(gameplay,0x1958));
     return result;
 }
@@ -246,11 +246,11 @@ void CDReleaseEffects(void) {
     if(!CDCorrectBuild() || strcmp(name,"GameThread"))return;
     void *ctx=context(0x8f666c0),*manager=ctx ? read<void *>(ctx,0x30) : nullptr;
     if(manager)for(auto &entry:clientEffects) {
-        ActorScope actor=native<ActorScope(*)(void *,uint32_t)>(0x3fc7dec)(manager,entry.first);
+        ActorScope actor=native<ActorScope(*)(void *,uint32_t)>(0x3fc80dc)(manager,entry.first);
         if(actor.valid && actor.actor)for(unsigned i=0;i<3;i++)infiniteStat(actor.actor,i,false,entry.second);
     }
     if(ctx){void *gameplay=read<void *>(ctx,0x20);if(gameplay)setSpeed(gameplay,false,1);}
-    if(manager && day.owned){ActorScope sender=native<ActorScope(*)(void *)>(0x3fccc88)(manager);if(sender.valid && sender.actor)setDay(sender.actor,10,false);}
+    if(manager && day.owned){ActorScope sender=native<ActorScope(*)(void *)>(0x3fccf78)(manager);if(sender.valid && sender.actor)setDay(sender.actor,10,false);}
     onServerThread(^{for(auto &entry:serverEffects){for(unsigned feature=0;feature<=6;feature++)applyServerEffect(entry.first,feature,false,0);applyServerEffect(entry.first,9,false,0);}});
 }
 BOOL CDRequestEffect(unsigned feature,BOOL wanted,double value,uint32_t expectedActorKey) {
@@ -258,16 +258,16 @@ BOOL CDRequestEffect(unsigned feature,BOOL wanted,double value,uint32_t expected
     if(!CDCorrectBuild() || strcmp(name,"GameThread") || feature>12 || !std::isfinite(value) || value<0 || value>10000000)return NO;
     void *ctx=context(0x8f666c0);if(loading(ctx))return NO;
     void *manager=read<void *>(ctx,0x30);if(!manager)return NO;
-    ActorScope focus=native<ActorScope(*)(void *)>(0x3fc9d48)(manager);
-    if(!focus.valid || !focus.actor || !native<bool(*)(void *,void *)>(0x3fcc5f0)(manager,focus.actor))return NO;
+    ActorScope focus=native<ActorScope(*)(void *)>(0x3fca038)(manager);
+    if(!focus.valid || !focus.actor || !native<bool(*)(void *,void *)>(0x3fcc8e0)(manager,focus.actor))return NO;
     uint32_t key=read<uint32_t>(focus.actor,0x100);if(!key || key!=expectedActorKey)return NO;
     if(feature==8){if(value<0.25 || value>4)return NO;return setSpeed(read<void *>(ctx,0x20),wanted,(float)value);}
-    if(feature==10 || feature==11){ActorScope sender=native<ActorScope(*)(void *)>(0x3fccc88)(manager);return sender.valid && sender.actor && setDay(sender.actor,feature,wanted);}
+    if(feature==10 || feature==11){ActorScope sender=native<ActorScope(*)(void *)>(0x3fccf78)(manager);return sender.valid && sender.actor && setDay(sender.actor,feature,wanted);}
     if(feature==7 || feature==12) {
         if(!wanted || value<1 || floor(value)!=value)return NO;
         ItemBinding binding;void *item=feature==7 ? selectedItem(focus.actor,binding) : walletItem(focus.actor,binding);
         if(!item)return NO;
-        int64_t limit=native<int64_t(*)(const void *,bool)>(0x1a6e1a4)(item,false);
+        int64_t limit=native<int64_t(*)(const void *,bool)>(0x1a6e1ac)(item,false);
         if(feature==7 && value>limit)return NO;
         return onServerThread(^{NSDictionary *result=changeQuantity(key,binding,(int64_t)value);@synchronized(NSProcessInfo.processInfo){quantityObservation=result;}});
     }
@@ -283,32 +283,32 @@ BOOL CDSetPlayerStatRatio(unsigned kind,double ratio,uint32_t expectedActorKey) 
     if(loading(ctx)) return NO;
     void *manager=ctx ? read<void *>(ctx,0x30) : nullptr;
     if(!manager) return NO;
-    ActorScope focus=native<ActorScope(*)(void *)>(0x3fc9d48)(manager);
-    if(!focus.valid || !focus.actor || !native<bool(*)(void *,void *)>(0x3fcc5f0)(manager,focus.actor)) return NO;
+    ActorScope focus=native<ActorScope(*)(void *)>(0x3fca038)(manager);
+    if(!focus.valid || !focus.actor || !native<bool(*)(void *,void *)>(0x3fcc8e0)(manager,focus.actor)) return NO;
     uint32_t actorKey=read<uint32_t>(focus.actor,0x100);
     if(!actorKey || (expectedActorKey && actorKey!=expectedActorKey)) return NO;
-    void *status=native<void *(*)(void *)>(0xf48024)(focus.actor);
-    void *infos=native<void *(*)(uint16_t)>(0x1b34090)(2);
+    void *status=native<void *(*)(void *)>(0xf4802c)(focus.actor);
+    void *infos=native<void *(*)(uint16_t)>(0x1b34098)(2);
     if(!status || !infos) return NO;
-    const uintptr_t getters[]={0x1ac3480,0x1ac3458,0x1ac3488};
+    const uintptr_t getters[]={0x1ac3488,0x1ac3460,0x1ac3490};
     uint16_t index=native<uint16_t(*)(void *)>(getters[kind])(infos);
     void *table=read<void *>(infos,0x58);
     void *info=table ? read<void *>(table,index*sizeof(void *)) : nullptr;
     if(!info) return NO;
     // Same immutable StatusInfo::key field used by fill_TrVaryRegenerateStat__.
     uint32_t statusKey=read<uint32_t>(info,8);
-    int64_t maximum=native<int64_t(*)(void *,uint16_t)>(0x1f827a4)(status,index);
-    uint64_t tick=native<uint64_t(*)()>(0xea69e0)();
-    int64_t current=native<int64_t(*)(void *,uint16_t,uint64_t)>(0x1f7fd50)(status,index,tick);
+    int64_t maximum=native<int64_t(*)(void *,uint16_t)>(0x1f82a94)(status,index);
+    uint64_t tick=native<uint64_t(*)()>(0xea69e8)();
+    int64_t current=native<int64_t(*)(void *,uint16_t,uint64_t)>(0x1f80040)(status,index,tick);
     if(maximum<=0 || maximum>1000000000000LL || current<0 || current>maximum) return NO;
     int64_t target=static_cast<int64_t>(maximum*ratio);
     int64_t delta=target-current;
     if(!delta) return YES;
-    ActorScope sender=native<ActorScope(*)(void *)>(0x3fccc88)(manager);
+    ActorScope sender=native<ActorScope(*)(void *)>(0x3fccf78)(manager);
     if(!sender.valid || !sender.actor) return NO;
     // Match the game's NormalMovementMethod call: authenticated local self
     // sender, Field server (4), target ActorKey, native StatusKey, fixed-point delta.
-    native<void(*)(void *,int,const uint32_t *,const uint32_t *,const int64_t *)>(0x4427158)(sender.actor,4,&actorKey,&statusKey,&delta);
+    native<void(*)(void *,int,const uint32_t *,const uint32_t *,const int64_t *)>(0x44273fc)(sender.actor,4,&actorKey,&statusKey,&delta);
     lastRequest=@{@"actorKey":@(actorKey),@"statusKey":@(statusKey),@"delta":@(delta),@"target":@(target)};
     return YES; // queued only; callers must confirm by a subsequent native read.
 }
@@ -322,7 +322,7 @@ BOOL CDSetOverlayInteraction(BOOL wanted) {
     void *phase=info ? read<void *>(info,0x40) : nullptr;
     if(!input || !phase) return NO;
     uint8_t phaseID=read<uint8_t>(phase,0x32);
-    auto set=native<void(*)(void *,bool,uint64_t,bool)>(0x35d31cc);
+    auto set=native<void(*)(void *,bool,uint64_t,bool)>(0x35d34bc);
     if(wanted) {
         if(!cursor.owned) cursor={input,phaseID,read<uint8_t>(input,0x50),read<uint64_t>(input,0x48),true};
         if(cursor.input!=input) return NO;

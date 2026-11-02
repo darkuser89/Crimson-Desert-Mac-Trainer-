@@ -8,9 +8,9 @@
 · [Alle Releases](https://github.com/darkuser89/Crimson-Desert-Mac-Trainer-/releases)
 
 Nativer macOS-Trainer aus mactrainertemplate. Die Originalvorlage wird nicht verändert.
-Unterstützt wird genau die Steam-arm64-Ausgabe mit Spielversion **2.04.03**,
-Bundle-Version **1.0.35 (433)** und Executable-UUID
-`0D6EC6AE-D229-3D5B-BEB9-9DD74EF820DA`. Andere Builds bleiben gesperrt.
+Unterstützt wird genau die Steam-arm64-Ausgabe mit Spielversion **2.04.05**,
+Bundle-Version **1.0.35 (437)** und Executable-UUID
+`083C4A58-7D49-307F-8F0F-8F9EEAE8343C`. Andere Builds bleiben gesperrt.
 
 ## Bedienung
 
@@ -76,7 +76,7 @@ einem nativen Apple-Silicon-Runner mit macOS26. Der geprüfte ZIP-Build ist sieb
 Tage als Workflow-Artefakt verfügbar. Unter „Actions“ lässt sich derselbe Ablauf
 auch manuell starten. Spieltests gehören nicht zum CI-Lauf.
 
-Ein Versions-Tag wie `v0.2.0` baut dieselbe App und veröffentlicht nach allen
+Ein Versions-Tag wie `v0.3.0` baut dieselbe App und veröffentlicht nach allen
 Prüfungen automatisch einen GitHub-Release mit ZIP, Installationshinweisen und
 SHA-256-Prüfsummen. Das Tag muss zur Version in `Resources/TrainerConfig.json`
 passen. Für eine neue Version App-Version und Buildnummer aktualisieren,
@@ -84,8 +84,8 @@ Release-Notizen in `docs/RELEASE_NOTES.md` anpassen, committen und dann taggen:
 
 ```sh
 git push origin main
-git tag -a v0.2.0 -m "Crimson Desert Trainer v0.2.0"
-git push origin v0.2.0
+git tag -a v0.3.0 -m "Crimson Desert Trainer v0.3.0"
+git push origin v0.3.0
 ```
 
 Das Workflow-Publishing verwendet ausschließlich den kurzlebigen `GITHUB_TOKEN`;
@@ -95,7 +95,7 @@ Releases schreiben. Die verwendeten GitHub-Actions sind auf Commit-IDs fixiert.
 Ein lokales Release-Paket lässt sich nach dem Build außerhalb des Codes erzeugen:
 
 ```sh
-python3 -B script/package_release.py ../CrimsonDesertTrainer-Build/Release --tag v0.2.0
+python3 -B script/package_release.py ../CrimsonDesertTrainer-Build/Release --tag v0.3.0
 ```
 
 Die Verpackung prüft Architektur, App-Metadaten und Signatur, entpackt das ZIP
@@ -104,7 +104,17 @@ Dateinamen wiederverwendet. Der Quellcode enthält keine Apps, Buildbäume oder 
 
 ## Native Anbindung
 
-`CrimsonNative.mm` prüft UUID und Instruktionsanfänge, bevor spielinterne Funktionen
+Vor einem Spielstart lässt sich die installierte Ausgabe auch lesend prüfen:
+
+```sh
+python3 -B script/verify_crimson_build.py /Pfad/zu/CrimsonDesert_Steam.app
+```
+
+Der Prüfer vergleicht die UUID und alle 76 nativen Byteprüfungen. Er startet oder
+verändert das Spiel nicht. Trainer 0.2.0 bleibt im älteren Release für Build 433
+verfügbar.
+
+`CrimsonNative.mm` prüft UUID und je 32 Programmbytes, bevor spielinterne Funktionen
 aufgerufen werden. Native One-Shot-Timer liefern Arbeit auf den tatsächlichen
 `GameThread`. Lokale Actor-Scope-Attacher schützen den Spieler während eines
 Aufrufs. Aktueller Besitzer, Gebiet und Ladezustand werden vor Änderungen geprüft.

@@ -24,6 +24,7 @@ if int(sys.argv[1].split('.')[0]) < 26:
 SDK
 python3 -B "$ROOT/Tests/test_project_generation.py"
 python3 -B "$ROOT/Tests/test_release_packaging.py"
+python3 -B "$ROOT/Tests/test_crimson_build.py"
 mkdir -p "$BUILD"
 APP="$BUILD/$NAME.app"
 if [[ -d "$APP" ]]; then
